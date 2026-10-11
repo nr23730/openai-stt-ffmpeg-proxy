@@ -1,0 +1,31 @@
+# Only stt_proxy.py, healthcheck.py and requirements.txt belong in the image.
+# Keeping the rest out also keeps the build context (and thus every build cache
+# key) small.
+.git
+.gitignore
+.dockerignore
+Dockerfile
+*compose.yml
+.env
+.env.example
+README.md
+Makefile
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# local scratch from testing
+.tmp/
+.verify/
+.rt/
+*.log
+*.wav
+*.webm
+*.ogg
+*.m4a

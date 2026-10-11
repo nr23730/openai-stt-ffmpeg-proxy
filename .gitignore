@@ -1,0 +1,41 @@
+# ---- secrets ---------------------------------------------------------------
+# .env holds STT_PROXY_API_KEY; compose reads it automatically and it must never
+# be committed. .env.example is the tracked template.
+.env
+.env.*
+!.env.example
+
+# ---- python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- local scratch from the test scripts -----------------------------------
+.tmp/
+.verify/
+.fmt/
+.rt/
+build.log
+resp.*
+*.tar.xz
+
+# audio the test scripts generate (voice.webm, sample.webm, ...)
+*.wav
+*.webm
+*.ogg
+*.m4a
+*.mp3
+*.flac
+
+# ---- editors / os ----------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+.DS_Store

@@ -1,0 +1,62 @@
+services:
+  openai-stt-ffmpeg-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Keep these in sync if you switch Debian releases:
+      # debian13 -> python:3.13-slim-trixie / debian:trixie-slim
+      # debian12 -> python:3.11-slim-bookworm / debian:bookworm-slim
+      args:
+        DISTROLESS_BASE: gcr.io/distroless/python3-debian13:nonroot
+        PYTHON_BUILDER: python:3.13-slim-trixie
+        DEBIAN_BUILDER: debian:trixie-slim
+    image: openai-stt-ffmpeg-proxy:distroless
+    container_name: openai-stt-ffmpeg-proxy
+    restart: unless-stopped
+
+    ports:
+      - "${STT_PROXY_HOST_PORT:-8765}:8765"
+
+    environment:
+      # --- upstream ---------------------------------------------------------
+      STT_PROXY_UPSTREAM: ${STT_PROXY_UPSTREAM:-https://api.openai.com}
+      STT_PROXY_PATH: ${STT_PROXY_PATH:-/v1/audio/transcriptions}
+      # Set in .env; leave empty to let each client send its own Authorization.
+      STT_PROXY_API_KEY: ${STT_PROXY_API_KEY:-}
+      STT_PROXY_UPSTREAM_TIMEOUT: ${STT_PROXY_UPSTREAM_TIMEOUT:-300}
+
+      # --- ffmpeg target shape ---------------------------------------------
+      STT_PROXY_SAMPLE_RATE: ${STT_PROXY_SAMPLE_RATE:-16000}
+      STT_PROXY_CHANNELS: ${STT_PROXY_CHANNELS:-1}
+      STT_PROXY_CODEC: ${STT_PROXY_CODEC:-pcm_s16le}
+      STT_PROXY_PASSTHROUGH_WAV: ${STT_PROXY_PASSTHROUGH_WAV:-0}
+      STT_PROXY_FFMPEG_TIMEOUT: ${STT_PROXY_FFMPEG_TIMEOUT:-180}
+
+      # --- limits -----------------------------------------------------------
+      STT_PROXY_MAX_UPLOAD_MB: ${STT_PROXY_MAX_UPLOAD_MB:-200}
+      STT_PROXY_THREADS: ${STT_PROXY_THREADS:-8}
+      STT_PROXY_LOG_LEVEL: ${STT_PROXY_LOG_LEVEL:-info}
+
+    # Distroless has no writable rootfs needs beyond temp files: the proxy streams
+    # uploads to $TMPDIR and deletes them when the response completes.
+    read_only: true
+    tmpfs:
+      - /tmp:size=${STT_PROXY_TMPFS_MB:-1024}M,mode=1777
+
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+
+    # The image carries its own HEALTHCHECK (python-based, since distroless has
+    # no shell); these only tune how fast a failure is surfaced.
+    healthcheck:
+      start_period: 20s
+      start_interval: 5s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

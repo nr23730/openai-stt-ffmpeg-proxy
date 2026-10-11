@@ -1,0 +1,6 @@
+# openai-stt-ffmpeg-proxy runtime deps (ffmpeg must be installed separately: apt install ffmpeg / brew install ffmpeg)
+flask>=2.2
+requests>=2.28
+
+# optional: a real WSGI server. --server auto uses it when present.
+waitress>=2.1
